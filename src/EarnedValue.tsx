@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useTable } from "react-table";
+import { Button } from "react-bootstrap";
+import { ModalContainer } from "./containers/Modal";
 
 const Styles = styled.div`
   padding: 1rem;
@@ -20,7 +22,7 @@ const Styles = styled.div`
       padding-left: 10px;
       padding-right: 10px;
       padding-top: 7px;
-      number-align: justify;
+      text-align: justify;
       transition: all 0.2s;
     }
 
@@ -34,14 +36,12 @@ const Styles = styled.div`
     }
 
     th:not(:first-child) {
-      number-align: center;
+      text-align: center;
     }
 
     tr td:not(:first-child) {
-      number-align: center;
+      text-align: center;
     }
-
-    
   }
 
   .pagination {
@@ -108,10 +108,9 @@ const Styles = styled.div`
     top: 35px;
     width: 100%;
   }
-  
+
   input {
     width: 3rem;
-
   }
 `;
 
@@ -234,53 +233,557 @@ export const EarnedValue = () => {
   ];
   const [dataState, setDataState] = useState([
     {
-      id: 1,
       name: "Phần ngầm",
       d: 4,
       pred: "-",
       type: ["LT", "TT"],
-      month1: { lt: 1, tt: 1 },
-      month2: { lt: 1, tt: 1 },
-      month3: { lt: 1, tt: 1 },
-      month4: { lt: 1, tt: 1 },
-      month5: { lt: 1, tt: 1 },
-      month6: { lt: 1, tt: 1 },
-      month7: { lt: 1, tt: 1 },
-      month8: { lt: 1, tt: 1 },
-      month9: { lt: 1, tt: 1 },
-      month10: { lt: 1, tt: 1 },
-      month11: { lt: 1, tt: 1 },
-      month12: { lt: 1, tt: 1 },
+      month1: { lt: 0, tt: 0 },
+      month2: { lt: 0, tt: 0 },
+      month3: { lt: 0, tt: 0 },
+      month4: { lt: 0, tt: 0 },
+      month5: { lt: 0, tt: 0 },
+      month6: { lt: 0, tt: 0 },
+      month7: { lt: 0, tt: 0 },
+      month8: { lt: 0, tt: 0 },
+      month9: { lt: 0, tt: 0 },
+      month10: { lt: 0, tt: 0 },
+      month11: { lt: 0, tt: 0 },
+      month12: { lt: 0, tt: 0 },
     },
   ]);
 
   const tableDatas = dataState.map((data, i) => {
     return {
       ...data,
-      type: data.type.map(t => 
+      id: i + 1,
+      type: data.type.map((t) => <div>{t}</div>),
+      month1: (
         <div>
-          {t}
-      </div>),
-      month1: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month1.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month1.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month2: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month2.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month2.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month3: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month3.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month3.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month4: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month4.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month4.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month5: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month5.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month5.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month6: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month6.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month6.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month7: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month7.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month7.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month8: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month8.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month8.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month9: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month9.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month9.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month10: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month10.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month10.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month11: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month11.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month11.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-      month12: ( <div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month12.lt = Number(e.target.value); setDataState(data); }} /> </div> <div> <input type="number" onChange={(e) => { const data = [...dataState]; data[i].month12.tt = Number(e.target.value); setDataState(data); }} /> </div> </div> ),
-
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month1.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month1.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month2: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month2.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month2.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month3: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month3.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month3.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month4: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month4.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month4.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month5: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month5.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month5.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month6: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month6.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month6.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month7: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month7.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month7.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month8: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month8.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month8.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month9: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month9.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month9.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month10: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month10.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month10.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month11: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month11.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month11.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
+      month12: (
+        <div>
+          {" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month12.lt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <input
+              type="number"
+              min={0}
+              onChange={(e) => {
+                const data = [...dataState];
+                data[i].month12.tt = Number(e.target.value);
+                setDataState(data);
+              }}
+            />{" "}
+          </div>{" "}
+        </div>
+      ),
     };
   });
 
+  const handleAddJob = () => {
+    if (jobTitleState) {
+      setDataState([
+        ...dataState,
+        {
+          name: jobTitleState,
+          d: 4,
+          pred: "-",
+          type: ["LT", "TT"],
+          month1: { lt: 0, tt: 0 },
+          month2: { lt: 0, tt: 0 },
+          month3: { lt: 0, tt: 0 },
+          month4: { lt: 0, tt: 0 },
+          month5: { lt: 0, tt: 0 },
+          month6: { lt: 0, tt: 0 },
+          month7: { lt: 0, tt: 0 },
+          month8: { lt: 0, tt: 0 },
+          month9: { lt: 0, tt: 0 },
+          month10: { lt: 0, tt: 0 },
+          month11: { lt: 0, tt: 0 },
+          month12: { lt: 0, tt: 0 },
+        },
+      ]);
+      setJobTitleState("");
+    }
+  };
+
+  const [jobTitleState, setJobTitleState] = useState("");
+
+  const calculateLTCost = () => {
+    const result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    for (let i = 0; i < dataState.length; i++) {
+      result[0] += dataState[i].month1.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[1] += dataState[i].month2.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[2] += dataState[i].month3.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[3] += dataState[i].month4.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[4] += dataState[i].month5.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[5] += dataState[i].month6.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[6] += dataState[i].month7.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[7] += dataState[i].month8.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[8] += dataState[i].month9.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[9] += dataState[i].month10.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[10] += dataState[i].month11.lt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[11] += dataState[i].month12.lt;
+    }
+    return result.filter((e) => e !== 0);
+  };
+  const calculateTTCost = () => {
+    const result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    for (let i = 0; i < dataState.length; i++) {
+      result[0] += dataState[i].month1.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[1] += dataState[i].month2.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[2] += dataState[i].month3.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[3] += dataState[i].month4.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[4] += dataState[i].month5.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[5] += dataState[i].month6.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[6] += dataState[i].month7.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[7] += dataState[i].month8.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[8] += dataState[i].month9.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[9] += dataState[i].month10.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[10] += dataState[i].month11.tt;
+    }
+    for (let i = 0; i < dataState.length; i++) {
+      result[11] += dataState[i].month12.tt;
+    }
+    return result.filter((e) => e !== 0);
+  };
+
+  const calculateLTCD = (arr: number[]) => {
+    const array = arr.filter((e) => e !== 0);
+    const new_array = [...array];
+    for (let i = 1; i < new_array.length; i++) {
+      new_array[i] += new_array[i - 1];
+    }
+    return new_array.filter((e) => e !== 0);
+  };
+  const calculateTTTCD = (arr: number[]) => {
+    const array = arr.filter((e) => e !== 0);
+    const new_array = [...array];
+    for (let i = 1; i < new_array.length; i++) {
+      new_array[i] += new_array[i - 1];
+    }
+    return new_array;
+  };
+
+  const [modalState, setModelState] = useState(false);
+  const [costState, setCostState] = useState<number[][]>();
+  const handleCalculate = () => {
+    const ltCost = calculateLTCost();
+    const ltCDCost = calculateLTCD(ltCost);
+    const ttCost = calculateTTCost();
+    const ttCDCost = calculateTTTCD(ttCost);
+    const cost = [[...ltCost], [...ltCDCost], [...ttCost], [...ttCDCost]];
+    setCostState(cost);
+    setModelState(true);
+  };
+
   return (
-    <div>
-      <Table columns={columns} data={tableDatas} />
-      {JSON.stringify(dataState.length)}
+    <div className="container">
+      <div className="row">
+        <div className="col-12">
+          <Table columns={columns} data={tableDatas} />
+        </div>
+      </div>
+      <div className="d-flex justify-content-center">
+        <div className="d-flex justify-content-center">
+          <input
+            className="form-control"
+            value={jobTitleState}
+            onChange={(e) => setJobTitleState(e.target.value)}
+          />
+
+          <Button className="text-center" type="primary" onClick={handleAddJob}>
+            Thêm Công việc
+          </Button>
+        </div>
+      </div>
+      <hr />
+      <div className="d-flex justify-content-center">
+        <Button
+          className="text-center"
+          type="primary"
+          onClick={handleCalculate}
+        >
+          Tính Earned Value
+        </Button>
+      </div>
+      <ModalContainer
+        show={modalState}
+        handleClose={() => setModelState(false)}
+        costs={costState}
+      />
     </div>
   );
 };
