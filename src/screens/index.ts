@@ -1,1 +1,1 @@
-export * from "./EarnedValue2";
+export * from "./EarnedValueScreen";

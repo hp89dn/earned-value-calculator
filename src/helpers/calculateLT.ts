@@ -10,10 +10,9 @@ export const calculateLTCost = (dataState: any[]) => {
 };
 
 export const calculateLTCD = (arr: number[]) => {
-  const array = arr.filter((e) => e !== 0);
-  const new_array = [...array];
+  const new_array = [...arr];
   for (let i = 1; i < new_array.length; i++) {
     new_array[i] += new_array[i - 1];
   }
-  return new_array.filter((e) => e !== 0);
+  return new_array;
 };

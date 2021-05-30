@@ -16,8 +16,8 @@ import {
   calculateTTCost,
   calculateTTTCD,
 } from "../../helpers";
-import * as FileSaver from "file-saver";
 import * as XLSX from "xlsx";
+import { BChart, LChart } from "../../components";
 
 const useStyles = makeStyles({
   table: {
@@ -54,7 +54,7 @@ const initialRow: Row = {
   ],
 };
 
-export const MaterialTable = () => {
+export const EarnedValueScreen = () => {
   const classes = useStyles();
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const [dataState, setDataState] = useState<Row[]>(test1);
@@ -73,7 +73,7 @@ export const MaterialTable = () => {
 
   React.useEffect(() => {
     handleCalculate();
-  }, [handleCalculate]);
+  }, [handleCalculate, dataState]);
 
   const handleDeleteRow = (i: number): void => {
     const datas = JSON.parse(JSON.stringify(dataState));
@@ -112,7 +112,7 @@ export const MaterialTable = () => {
       const lts_data = [
         (index + 1).toString(),
         data.name,
-        data.d.toString(),
+        data.months.filter((month) => month[0] > 0).length.toString(),
         data.pred,
         data.type[0],
       ];
@@ -147,7 +147,7 @@ export const MaterialTable = () => {
     // cost data
     // chi phí lý thuyết hằng ngày
     const ltDaily = costState[0].map((c) => (c !== 0 ? c.toString() : ""));
-    const ltsDaiLyData = ["Chi phí LT hằng ngày", "", "", "", ""];
+    const ltsDaiLyData = ["", "", "", "", "Chi phí LT hằng ngày"];
     for (let index = 0; index < ltDaily.length; index++) {
       const element = ltDaily[index];
       ltsDaiLyData.push(element);
@@ -155,7 +155,7 @@ export const MaterialTable = () => {
 
     // chi phí lý thuyết cộng dồn
     const ltCongDon = costState[1].map((c) => (c !== 0 ? c.toString() : ""));
-    const ltCongDonData = ["Chi phí LT cộng dồn", "", "", "", ""];
+    const ltCongDonData = ["", "", "", "", "Chi phí LT cộng dồn"];
     for (let index = 0; index < ltCongDon.length; index++) {
       const element = ltCongDon[index];
       ltCongDonData.push(element);
@@ -163,7 +163,7 @@ export const MaterialTable = () => {
 
     // chi phí thực tế hằng ngày
     const ttDaily = costState[2].map((c) => (c !== 0 ? c.toString() : ""));
-    const ttsDaiLyData = ["Chi phí LT hằng ngày", "", "", "", ""];
+    const ttsDaiLyData = ["", "", "", "", "Chi phí LT hằng ngày"];
     for (let index = 0; index < ttDaily.length; index++) {
       const element = ttDaily[index];
       ttsDaiLyData.push(element);
@@ -171,7 +171,7 @@ export const MaterialTable = () => {
 
     // chi phí thực tế cộng dồn
     const ttCongDon = costState[3].map((c) => (c !== 0 ? c.toString() : ""));
-    const ttCongDonData = ["Chi phí TT cộng dồn", "", "", "", ""];
+    const ttCongDonData = ["", "", "", "", "Chi phí TT cộng dồn"];
     for (let index = 0; index < ttCongDon.length; index++) {
       const element = ttCongDon[index];
       ttCongDonData.push(element);
@@ -184,6 +184,7 @@ export const MaterialTable = () => {
       [...ttCongDonData],
     ];
 
+    data.push(["-"]);
     for (let i = 0; i < costRows.length; i++) {
       const element = costRows[i];
       data.push(element);
@@ -192,27 +193,10 @@ export const MaterialTable = () => {
     // create sheet and import data to sheet
     const ws = XLSX.utils.aoa_to_sheet(data);
 
-    // Merge cell: s = start, r = row, c=col, e= end
     const merge = [];
-    // merge jobs columns
-    for (let i = 1; i <= rows.length; i++) {
-      merge.push(
-        { s: { r: 2 * i - 1, c: 0 }, e: { r: 2 * i, c: 0 } },
-        { s: { r: 2 * i - 1, c: 1 }, e: { r: 2 * i, c: 1 } },
-        { s: { r: 2 * i - 1, c: 2 }, e: { r: 2 * i, c: 2 } },
-        { s: { r: 2 * i - 1, c: 3 }, e: { r: 2 * i, c: 3 } },
-        { s: { r: 2 * i - 1, c: 4 }, e: { r: 2 * i, c: 4 } }
-      );
-    }
-
     const i = 2 * rows.length + 1;
     // merge cost column
-    merge.push(
-      { s: { r: i, c: 0 }, e: { r: i, c: 4 } },
-      { s: { r: i + 1, c: 0 }, e: { r: i + 1, c: 4 } },
-      { s: { r: i + 2, c: 0 }, e: { r: i + 2, c: 4 } },
-      { s: { r: i + 3, c: 0 }, e: { r: i + 3, c: 4 } }
-    );
+    merge.push({ s: { r: i, c: 0 }, e: { r: i, c: 16 } });
     // let's merge cell
     ws["!merges"] = merge;
 
@@ -224,12 +208,164 @@ export const MaterialTable = () => {
     XLSX.writeFile(wb, "sheetjs.xlsx");
   };
 
+  const handleImportExcel = async (file: any) => {
+    const { files } = file.target;
+    const fileReader = new FileReader();
+    fileReader.onload = (event: any) => {
+      try {
+        const { result } = event.target;
+        // Read the entire excel table object in binary stream
+        const workbook = XLSX.read(result, { type: "binary" });
+        let data: any = []; // store the acquired data
+        // Traverse each worksheet for reading (here only the first table is read by default)
+        for (const sheet in workbook.Sheets) {
+          if (workbook.Sheets.hasOwnProperty(sheet)) {
+            // Convert excel to json data using the sheet_to_json method
+            data = data.concat(
+              XLSX.utils.sheet_to_json(workbook.Sheets[sheet])
+            );
+
+            // break; // If you only take the first table, uncomment this line
+          }
+        }
+
+        const emptyIndex = data.findIndex((d: any) => d.STT === "-");
+        const jobs = [];
+        for (let i = 0; i < emptyIndex; i = i + 2) {
+          const jobData = {
+            name: data[i]["Công việc"],
+            d: data[i]["D"],
+            pred: data[i]["Pred"],
+            type: [data[i]["Loại"], data[i + 1]["Loại"]],
+            months: [
+              [
+                Number(data[i]["Tháng 1"]) || 0,
+                Number(data[i + 1]["Tháng 1"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 2"]) || 0,
+                Number(data[i + 1]["Tháng 2"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 3"]) || 0,
+                Number(data[i + 1]["Tháng 3"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 4"]) || 0,
+                Number(data[i + 1]["Tháng 4"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 5"]) || 0,
+                Number(data[i + 1]["Tháng 5"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 6"]) || 0,
+                Number(data[i + 1]["Tháng 6"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 7"]) || 0,
+                Number(data[i + 1]["Tháng 7"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 8"]) || 0,
+                Number(data[i + 1]["Tháng 8"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 9"]) || 0,
+                Number(data[i + 1]["Tháng 9"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 10"]) || 0,
+                Number(data[i + 1]["Tháng 10"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 11"]) || 0,
+                Number(data[i + 1]["Tháng 11"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 12"]) || 0,
+                Number(data[i + 1]["Tháng 12"]) || 0,
+              ],
+            ],
+          };
+          jobs.push(jobData);
+        }
+        setDataState([]);
+        setDataState(jobs);
+        return [...data];
+      } catch (e) {
+        // Here you can throw a related prompt with a file type error incorrect.
+        console.log("file type is incorrect");
+        return;
+      }
+    };
+    // Open the file in binary mode
+    try {
+      fileReader.readAsBinaryString(files[0]);
+    } catch (error) {
+      return;
+    }
+  };
+
+  const getChartData = () => {
+    const ltDaiLyCost = [],
+      ltCongDonCost = [],
+      ttDaiLyCost = [],
+      ttCongDonCost = [];
+    for (let index = 0; index < 12; index++) {
+      ltDaiLyCost.push({
+        name: `Tháng ${index + 1}`,
+        "Chi phí LT":
+          costState[0] && costState[0][index] !== 0
+            ? costState[0][index]
+            : null,
+      });
+
+      ltCongDonCost.push({
+        name: `Tháng ${index + 1}`,
+        "Chi phí LT":
+          costState[1] && costState[1][index] !== 0
+            ? costState[1][index]
+            : null,
+      });
+
+      ttDaiLyCost.push({
+        name: `Tháng ${index + 1}`,
+        "Chi phí TT":
+          costState[2] && costState[2][index] !== 0
+            ? costState[2][index]
+            : null,
+      });
+
+      ttCongDonCost.push({
+        name: `Tháng ${index + 1}`,
+        "Chi phí TT":
+          costState[3] && costState[3][index] !== 0
+            ? costState[3][index]
+            : null,
+      });
+    }
+    return [
+      [...ltDaiLyCost],
+      [...ltCongDonCost],
+      [...ttDaiLyCost],
+      [...ttCongDonCost, { name: "Tháng 9", "Chi phí TT": null }],
+    ];
+  };
+
+  const [
+    ltDaiLyCostChartData,
+    ltCongDonCostChartData,
+    ttDaiLyCostChartData,
+    ttCongDonCostChartData,
+  ] = getChartData();
+
   return (
     <>
       <TableContainer>
         <Table
           className={classes.table}
-          style={{ width: "100%" }}
+          style={{ width: "100%", backgroundColor: "#e9ecef" }}
           aria-label="spanning table"
         >
           <TableHead>
@@ -254,6 +390,7 @@ export const MaterialTable = () => {
                 <TableCell align="center">
                   <input
                     type="text"
+                    min={0}
                     placeholder="Nhập tên công việc"
                     value={dataState[index].name}
                     onChange={(e) => {
@@ -265,17 +402,12 @@ export const MaterialTable = () => {
                 </TableCell>
                 <TableCell align="center">
                   {
-                    <input
-                      type="number"
-                      style={{ width: "40px" }}
-                      placeholder=""
-                      value={dataState[index].d}
-                      onChange={(e) => {
-                        const data = [...dataState];
-                        data[index].d = Number(e.target.value);
-                        setDataState([...data]);
-                      }}
-                    />
+                    <span style={{ width: "40px" }}>
+                      {
+                        dataState[index].months.filter((month) => month[0] > 0)
+                          .length
+                      }
+                    </span>
                   }
                 </TableCell>
                 <TableCell align="center">
@@ -294,16 +426,31 @@ export const MaterialTable = () => {
                   }
                 </TableCell>
                 <TableCell align="center">
-                  {row.type.map((t) => (
-                    <div>{t}</div>
+                  {row.type.map((t, i) => (
+                    <div
+                      style={{
+                        color: i === 0 ? "blue" : "red",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {t}
+                    </div>
                   ))}
                 </TableCell>
                 {row.months.map((r, i) => (
                   <TableCell align="center">
                     <div>
                       <input
-                        style={{ width: "40px" }}
+                        style={{
+                          width: "40px",
+                          border: "none",
+                          textAlign: "center",
+                          color: r[0] !== 0 ? "blue" : "black",
+                          fontWeight: r[0] !== 0 ? "bold" : "normal",
+                          backgroundColor: r[0] !== 0 ? "#ade8f4" : "#fff",
+                        }}
                         type="number"
+                        min={0}
                         value={r[0]}
                         onChange={(e) => {
                           const data = JSON.parse(JSON.stringify(dataState));
@@ -314,8 +461,16 @@ export const MaterialTable = () => {
                     </div>
                     <div>
                       <input
-                        style={{ width: "40px" }}
+                        style={{
+                          width: "40px",
+                          color: r[1] !== 0 ? "red" : "black",
+                          border: "none",
+                          textAlign: "center",
+                          fontWeight: r[1] !== 0 ? "bold" : "normal",
+                          backgroundColor: r[1] !== 0 ? "#f7cad0" : "#fff",
+                        }}
                         type="number"
+                        min={0}
                         value={r[1]}
                         onChange={(e) => {
                           const data = [...dataState];
@@ -340,41 +495,65 @@ export const MaterialTable = () => {
             <TableRow>
               <TableCell rowSpan={4} />
               <TableCell align="right" colSpan={4}>
-                Chi phí LT hằng ngày
+                <span style={{ color: "blue", fontWeight: "bold" }}>
+                  Chi phí LT hằng ngày
+                </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[0].map((cost) => (
-                    <TableCell align="center">{cost}</TableCell>
+                    <TableCell align="center">
+                      <span style={{ color: "blue", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
                   ))
                 : ""}
             </TableRow>
             <TableRow>
               <TableCell align="right" colSpan={4}>
-                Chi phí LT cộng dồn
+                <span style={{ color: "blue", fontWeight: "bold" }}>
+                  Chi phí LT cộng dồn
+                </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[1].map((cost) => (
-                    <TableCell align="center">{cost}</TableCell>
+                    <TableCell align="center">
+                      <span style={{ color: "blue", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
                   ))
                 : ""}
             </TableRow>
             <TableRow>
               <TableCell align="right" colSpan={4}>
-                Chi phí TT hằng ngày
+                <span style={{ color: "red", fontWeight: "bold" }}>
+                  Chi phí TT hằng ngày
+                </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[2].map((cost) => (
-                    <TableCell align="center">{cost}</TableCell>
+                    <TableCell align="center">
+                      <span style={{ color: "red", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
                   ))
                 : ""}
             </TableRow>
             <TableRow>
               <TableCell align="right" colSpan={4}>
-                Chi phí TT cộng dồn
+                <span style={{ color: "red", fontWeight: "bold" }}>
+                  Chi phí TT cộng dồn
+                </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[3].map((cost) => (
-                    <TableCell align="center">{cost}</TableCell>
+                    <TableCell align="center">
+                      <span style={{ color: "red", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
                   ))
                 : ""}
             </TableRow>
@@ -382,7 +561,7 @@ export const MaterialTable = () => {
         </Table>
       </TableContainer>
       <hr />
-      <div>
+      <div className="d-flex flex-row justify-content-around">
         <Button
           variant="contained"
           color="primary"
@@ -397,6 +576,34 @@ export const MaterialTable = () => {
         >
           Export to Excel
         </Button>
+        <Button variant="contained" color="secondary" component="label">
+          Import Excel File
+          <input
+            hidden
+            type="file"
+            accept=".xlsx, .xls"
+            onChange={(e) => handleImportExcel(e)}
+          />
+        </Button>
+      </div>
+      <hr />
+      <div className="row">
+        <div className="col-3">
+          <h3 className="text-center">Chi phí ngân quỹ hàng tháng</h3>
+          <BChart data={ltDaiLyCostChartData} dataKey={"Chi phí LT"} />
+        </div>
+        <div className="col-3">
+          <h3 className="text-center">Chi phí ngân quỹ tích luỹ (BCWS)</h3>
+          <LChart data={ltCongDonCostChartData} dataKey={"Chi phí LT"} />
+        </div>
+        <div className="col-3">
+          <h3 className="text-center">Chi phí tích luỹ hàng tháng</h3>
+          <BChart data={ttDaiLyCostChartData} dataKey={"Chi phí TT"} />
+        </div>
+        <div className="col-3">
+          <h3 className="text-center">Chi phí thực tế (TT) tích luỹ (BCWS)</h3>
+          <LChart data={ttCongDonCostChartData} dataKey={"Chi phí TT"} />
+        </div>
       </div>
       {JSON.stringify(dataState)}
     </>
