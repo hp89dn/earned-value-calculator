@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import "./App.css";
-import { EarnedValue } from "./EarnedValue";
+import { EarnedValue2 } from "./screens";
+import { EarnedValue } from "./screens/EarnedValue";
 
 function App() {
   // const array_inputs = {
@@ -179,7 +180,7 @@ function App() {
   //   </div>
   // );
 
-  return <EarnedValue />;
+  return <EarnedValue2 />;
 }
 
 export default App;
