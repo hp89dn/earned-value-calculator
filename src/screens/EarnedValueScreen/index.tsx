@@ -156,19 +156,19 @@ export const EarnedValueScreen = () => {
               [Number(data[i]["Tháng 12"]) || 0, Number(data[i + 1]["Tháng 12"]) || 0],
             ],
             percent: [
-              [Number(data[i]["Tháng 1"]) || 0, Number(data[i + 1]["Tháng 1"]) || 0],
-              [Number(data[i]["Tháng 2"]) || 0, Number(data[i + 1]["Tháng 2"]) || 0],
-              [Number(data[i]["Tháng 3"]) || 0, Number(data[i + 1]["Tháng 3"]) || 0],
-              [Number(data[i]["Tháng 4"]) || 0, Number(data[i + 1]["Tháng 4"]) || 0],
-              [Number(data[i]["Tháng 5"]) || 0, Number(data[i + 1]["Tháng 5"]) || 0],
-              [Number(data[i]["Tháng 6"]) || 0, Number(data[i + 1]["Tháng 6"]) || 0],
-              [Number(data[i]["Tháng 7"]) || 0, Number(data[i + 1]["Tháng 7"]) || 0],
-              [Number(data[i]["Tháng 8"]) || 0, Number(data[i + 1]["Tháng 8"]) || 0],
-              [Number(data[i]["Tháng 9"]) || 0, Number(data[i + 1]["Tháng 9"]) || 0],
-              [Number(data[i]["Tháng 10"]) || 0, Number(data[i + 1]["Tháng 10"]) || 0],
-              [Number(data[i]["Tháng 11"]) || 0, Number(data[i + 1]["Tháng 11"]) || 0],
-              [Number(data[i]["Tháng 12"]) || 0, Number(data[i + 1]["Tháng 12"]) || 0],
-            ],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+              [0, 0],
+            ]
           };
           jobs.push(jobData);
         }
