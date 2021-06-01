@@ -15,9 +15,14 @@ import {
   calculateLTCost,
   calculateTTCost,
   calculateTTTCD,
+  getCosts,
+  getJobRowExcelData,
 } from "../../helpers";
 import * as XLSX from "xlsx";
 import { BChart, LChart } from "../../components";
+import { PercentCost } from '../../containers';
+import NumberPrecision from 'number-precision';
+NumberPrecision.enableBoundaryChecking(false); // default param is true
 
 const useStyles = makeStyles({
   table: {
@@ -25,8 +30,10 @@ const useStyles = makeStyles({
   },
 });
 
-interface Row {
+export interface Row {
   name: string;
+  cost: number;
+  percent: number[][];
   d: number;
   pred: string;
   type: string[];
@@ -34,24 +41,7 @@ interface Row {
 }
 
 const initialRow: Row = {
-  name: "",
-  d: 0,
-  type: ["LT", "TT"],
-  pred: "",
-  months: [
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-  ],
+  name: "", cost: 0, d: 0, type: ["LT", "TT"], pred: "-", months: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],], percent: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],]
 };
 
 export const EarnedValueScreen = () => {
@@ -59,9 +49,7 @@ export const EarnedValueScreen = () => {
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const [dataState, setDataState] = useState<Row[]>(test1);
   const rows: Row[] = [...dataState];
-
   const [costState, setCostState] = useState<number[][]>([]);
-
   const handleCalculate = useCallback(() => {
     const ltCost = calculateLTCost(dataState);
     const ltCDCost = calculateLTCD(ltCost);
@@ -73,7 +61,7 @@ export const EarnedValueScreen = () => {
 
   React.useEffect(() => {
     handleCalculate();
-  }, [handleCalculate, dataState]);
+  }, [handleCalculate]);
 
   const handleDeleteRow = (i: number): void => {
     const datas = JSON.parse(JSON.stringify(dataState));
@@ -83,56 +71,10 @@ export const EarnedValueScreen = () => {
   };
 
   const handleExportExcel = () => {
-    const headers = [
-      "STT",
-      "Công việc",
-      "D",
-      "Pred",
-      "Loại",
-      "Tháng 1",
-      "Tháng 2",
-      "Tháng 3",
-      "Tháng 4",
-      "Tháng 5",
-      "Tháng 6",
-      "Tháng 7",
-      "Tháng 8",
-      "Tháng 9",
-      "Tháng 10",
-      "Tháng 11",
-      "Tháng 12",
-    ];
+    const headers = ["STT", "Công việc", "Chi phí", "D", "Pred", "Loại", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12",];
 
     // jobs data
-    const rows = dataState.map((data, index) => {
-      // LT
-      const lts = data.months.map((month) =>
-        month[0] !== 0 ? month[0].toString() : ""
-      );
-      const lts_data = [
-        (index + 1).toString(),
-        data.name,
-        data.months.filter((month) => month[0] > 0).length.toString(),
-        data.pred,
-        data.type[0],
-      ];
-      for (let index = 0; index < lts.length; index++) {
-        const element = lts[index];
-        lts_data.push(element);
-      }
-
-      // TT
-      const tts = data.months.map((month) =>
-        month[1] !== 0 ? month[1].toString() : ""
-      );
-      const tts_data = ["", "", "", "", data.type[1]];
-      for (let index = 0; index < tts.length; index++) {
-        const element = tts[index];
-        tts_data.push(element);
-      }
-
-      return [[...lts_data], [...tts_data]];
-    });
+    const rows = getJobRowExcelData(dataState);
 
     // push job data to data array
     const data = [[...headers]];
@@ -143,46 +85,7 @@ export const EarnedValueScreen = () => {
         data.push(element);
       }
     }
-
-    // cost data
-    // chi phí lý thuyết hằng ngày
-    const ltDaily = costState[0].map((c) => (c !== 0 ? c.toString() : ""));
-    const ltsDaiLyData = ["", "", "", "", "Chi phí LT hằng ngày"];
-    for (let index = 0; index < ltDaily.length; index++) {
-      const element = ltDaily[index];
-      ltsDaiLyData.push(element);
-    }
-
-    // chi phí lý thuyết cộng dồn
-    const ltCongDon = costState[1].map((c) => (c !== 0 ? c.toString() : ""));
-    const ltCongDonData = ["", "", "", "", "Chi phí LT cộng dồn"];
-    for (let index = 0; index < ltCongDon.length; index++) {
-      const element = ltCongDon[index];
-      ltCongDonData.push(element);
-    }
-
-    // chi phí thực tế hằng ngày
-    const ttDaily = costState[2].map((c) => (c !== 0 ? c.toString() : ""));
-    const ttsDaiLyData = ["", "", "", "", "Chi phí LT hằng ngày"];
-    for (let index = 0; index < ttDaily.length; index++) {
-      const element = ttDaily[index];
-      ttsDaiLyData.push(element);
-    }
-
-    // chi phí thực tế cộng dồn
-    const ttCongDon = costState[3].map((c) => (c !== 0 ? c.toString() : ""));
-    const ttCongDonData = ["", "", "", "", "Chi phí TT cộng dồn"];
-    for (let index = 0; index < ttCongDon.length; index++) {
-      const element = ttCongDon[index];
-      ttCongDonData.push(element);
-    }
-
-    const costRows = [
-      [...ltsDaiLyData],
-      [...ltCongDonData],
-      [...ttsDaiLyData],
-      [...ttCongDonData],
-    ];
+    const costRows = getCosts(costState);
 
     data.push(["-"]);
     for (let i = 0; i < costRows.length; i++) {
@@ -196,7 +99,7 @@ export const EarnedValueScreen = () => {
     const merge = [];
     const i = 2 * rows.length + 1;
     // merge cost column
-    merge.push({ s: { r: i, c: 0 }, e: { r: i, c: 16 } });
+    merge.push({ s: { r: i, c: 0 }, e: { r: i, c: 17 } });
     // let's merge cell
     ws["!merges"] = merge;
 
@@ -234,58 +137,37 @@ export const EarnedValueScreen = () => {
         for (let i = 0; i < emptyIndex; i = i + 2) {
           const jobData = {
             name: data[i]["Công việc"],
+            cost: data[i]["Chi phí"],
             d: data[i]["D"],
             pred: data[i]["Pred"],
             type: [data[i]["Loại"], data[i + 1]["Loại"]],
             months: [
-              [
-                Number(data[i]["Tháng 1"]) || 0,
-                Number(data[i + 1]["Tháng 1"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 2"]) || 0,
-                Number(data[i + 1]["Tháng 2"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 3"]) || 0,
-                Number(data[i + 1]["Tháng 3"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 4"]) || 0,
-                Number(data[i + 1]["Tháng 4"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 5"]) || 0,
-                Number(data[i + 1]["Tháng 5"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 6"]) || 0,
-                Number(data[i + 1]["Tháng 6"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 7"]) || 0,
-                Number(data[i + 1]["Tháng 7"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 8"]) || 0,
-                Number(data[i + 1]["Tháng 8"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 9"]) || 0,
-                Number(data[i + 1]["Tháng 9"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 10"]) || 0,
-                Number(data[i + 1]["Tháng 10"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 11"]) || 0,
-                Number(data[i + 1]["Tháng 11"]) || 0,
-              ],
-              [
-                Number(data[i]["Tháng 12"]) || 0,
-                Number(data[i + 1]["Tháng 12"]) || 0,
-              ],
+              [Number(data[i]["Tháng 1"]) || 0, Number(data[i + 1]["Tháng 1"]) || 0],
+              [Number(data[i]["Tháng 2"]) || 0, Number(data[i + 1]["Tháng 2"]) || 0],
+              [Number(data[i]["Tháng 3"]) || 0, Number(data[i + 1]["Tháng 3"]) || 0],
+              [Number(data[i]["Tháng 4"]) || 0, Number(data[i + 1]["Tháng 4"]) || 0],
+              [Number(data[i]["Tháng 5"]) || 0, Number(data[i + 1]["Tháng 5"]) || 0],
+              [Number(data[i]["Tháng 6"]) || 0, Number(data[i + 1]["Tháng 6"]) || 0],
+              [Number(data[i]["Tháng 7"]) || 0, Number(data[i + 1]["Tháng 7"]) || 0],
+              [Number(data[i]["Tháng 8"]) || 0, Number(data[i + 1]["Tháng 8"]) || 0],
+              [Number(data[i]["Tháng 9"]) || 0, Number(data[i + 1]["Tháng 9"]) || 0],
+              [Number(data[i]["Tháng 10"]) || 0, Number(data[i + 1]["Tháng 10"]) || 0],
+              [Number(data[i]["Tháng 11"]) || 0, Number(data[i + 1]["Tháng 11"]) || 0],
+              [Number(data[i]["Tháng 12"]) || 0, Number(data[i + 1]["Tháng 12"]) || 0],
+            ],
+            percent: [
+              [Number(data[i]["Tháng 1"]) || 0, Number(data[i + 1]["Tháng 1"]) || 0],
+              [Number(data[i]["Tháng 2"]) || 0, Number(data[i + 1]["Tháng 2"]) || 0],
+              [Number(data[i]["Tháng 3"]) || 0, Number(data[i + 1]["Tháng 3"]) || 0],
+              [Number(data[i]["Tháng 4"]) || 0, Number(data[i + 1]["Tháng 4"]) || 0],
+              [Number(data[i]["Tháng 5"]) || 0, Number(data[i + 1]["Tháng 5"]) || 0],
+              [Number(data[i]["Tháng 6"]) || 0, Number(data[i + 1]["Tháng 6"]) || 0],
+              [Number(data[i]["Tháng 7"]) || 0, Number(data[i + 1]["Tháng 7"]) || 0],
+              [Number(data[i]["Tháng 8"]) || 0, Number(data[i + 1]["Tháng 8"]) || 0],
+              [Number(data[i]["Tháng 9"]) || 0, Number(data[i + 1]["Tháng 9"]) || 0],
+              [Number(data[i]["Tháng 10"]) || 0, Number(data[i + 1]["Tháng 10"]) || 0],
+              [Number(data[i]["Tháng 11"]) || 0, Number(data[i + 1]["Tháng 11"]) || 0],
+              [Number(data[i]["Tháng 12"]) || 0, Number(data[i + 1]["Tháng 12"]) || 0],
             ],
           };
           jobs.push(jobData);
@@ -308,49 +190,7 @@ export const EarnedValueScreen = () => {
   };
 
   const getChartData = () => {
-    const ltDaiLyCost = [],
-      ltCongDonCost = [],
-      ttDaiLyCost = [],
-      ttCongDonCost = [];
-    for (let index = 0; index < 12; index++) {
-      ltDaiLyCost.push({
-        name: `Tháng ${index + 1}`,
-        "Chi phí LT":
-          costState[0] && costState[0][index] !== 0
-            ? costState[0][index]
-            : null,
-      });
-
-      ltCongDonCost.push({
-        name: `Tháng ${index + 1}`,
-        "Chi phí LT":
-          costState[1] && costState[1][index] !== 0
-            ? costState[1][index]
-            : null,
-      });
-
-      ttDaiLyCost.push({
-        name: `Tháng ${index + 1}`,
-        "Chi phí TT":
-          costState[2] && costState[2][index] !== 0
-            ? costState[2][index]
-            : null,
-      });
-
-      ttCongDonCost.push({
-        name: `Tháng ${index + 1}`,
-        "Chi phí TT":
-          costState[3] && costState[3][index] !== 0
-            ? costState[3][index]
-            : null,
-      });
-    }
-    return [
-      [...ltDaiLyCost],
-      [...ltCongDonCost],
-      [...ttDaiLyCost],
-      [...ttCongDonCost, { name: "Tháng 9", "Chi phí TT": null }],
-    ];
+    const ltDaiLyCost = [], ltCongDonCost = [], ttDaiLyCost = [], ttCongDonCost = []; for (let index = 0; index < 12; index++) { ltDaiLyCost.push({ name: `${index + 1}`, "Chi phí LT": costState[0] && costState[0][index] !== 0 ? costState[0][index] : null, }); ltCongDonCost.push({ name: `${index + 1}`, "Chi phí LT": costState[1] && costState[1][index] !== 0 ? costState[1][index] : null, }); ttDaiLyCost.push({ name: `${index + 1}`, "Chi phí TT": costState[2] && costState[2][index] !== 0 ? costState[2][index] : null, }); ttCongDonCost.push({ name: `${index + 1}`, "Chi phí TT": costState[3] && costState[3][index] !== 0 ? costState[3][index] : null, }); } return [[...ltDaiLyCost], [...ltCongDonCost], [...ttDaiLyCost], [...ttCongDonCost],];
   };
 
   const [
@@ -372,6 +212,7 @@ export const EarnedValueScreen = () => {
             <TableRow>
               <TableCell align="center">STT</TableCell>
               <TableCell align="center">Công việc</TableCell>
+              <TableCell align="center">Chi phí</TableCell>
               <TableCell align="center">D</TableCell>
               <TableCell align="center">Pred</TableCell>
               <TableCell align="center">Loại đường </TableCell>
@@ -382,12 +223,16 @@ export const EarnedValueScreen = () => {
             </TableRow>
           </TableHead>
           <TableBody>
+
             {rows.map((row, index) => (
               <TableRow key={index}>
+
                 <TableCell align="center">
+
                   <span style={{ width: "5px" }}>{index + 1}</span>
                 </TableCell>
                 <TableCell align="center">
+
                   <input
                     type="text"
                     min={0}
@@ -401,16 +246,29 @@ export const EarnedValueScreen = () => {
                   />
                 </TableCell>
                 <TableCell align="center">
+
                   {
                     <span style={{ width: "40px" }}>
+
+                      {dataState[index].months
+                        .map((month) => month[0])
+                        .reduce((a, b) => a + b, 0)}
+                    </span>
+                  }
+                </TableCell>
+                <TableCell align="center">
+
+                  {
+                    <span style={{ width: "40px" }}>
+
                       {
-                        dataState[index].months.filter((month) => month[0] > 0)
-                          .length
+                        dataState[index].months.filter((month) => month[0] > 0).length
                       }
                     </span>
                   }
                 </TableCell>
                 <TableCell align="center">
+
                   {
                     <input
                       type="text"
@@ -426,20 +284,19 @@ export const EarnedValueScreen = () => {
                   }
                 </TableCell>
                 <TableCell align="center">
+
                   {row.type.map((t, i) => (
-                    <div
-                      style={{
-                        color: i === 0 ? "blue" : "red",
-                        fontWeight: "bold",
-                      }}
-                    >
+                    <div style={{ color: i === 0 ? "blue" : "red", fontWeight: "bold" }}>
+
                       {t}
                     </div>
                   ))}
                 </TableCell>
                 {row.months.map((r, i) => (
                   <TableCell align="center">
+
                     <div>
+
                       <input
                         style={{
                           width: "40px",
@@ -453,13 +310,16 @@ export const EarnedValueScreen = () => {
                         min={0}
                         value={r[0]}
                         onChange={(e) => {
-                          const data = JSON.parse(JSON.stringify(dataState));
+                          const data = [...dataState];
+                          const cost = data[index].months.map(m => m[0]).reduce((a, b) => (a + b), 0);
+                          data[index].percent[i][1] = NumberPrecision.times(NumberPrecision.divide(data[index].percent[i][0], 100), Number(cost));
                           data[index].months[i][0] = Number(e.target.value);
                           setDataState(data);
                         }}
                       />
                     </div>
                     <div>
+
                       <input
                         style={{
                           width: "40px",
@@ -482,82 +342,104 @@ export const EarnedValueScreen = () => {
                   </TableCell>
                 ))}
                 <TableCell>
+
                   <IconButton
                     onClick={() => handleDeleteRow(index)}
                     color="secondary"
                     aria-label="delete"
                   >
+
                     <DeleteIcon fontSize="large" />
                   </IconButton>
                 </TableCell>
               </TableRow>
             ))}
             <TableRow>
+
               <TableCell rowSpan={4} />
-              <TableCell align="right" colSpan={4}>
+              <TableCell align="right" colSpan={5}>
+
                 <span style={{ color: "blue", fontWeight: "bold" }}>
+
                   Chi phí LT hằng ngày
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[0].map((cost) => (
-                    <TableCell align="center">
-                      <span style={{ color: "blue", fontWeight: "bold" }}>
-                        {cost !== 0 ? cost : ""}
-                      </span>
-                    </TableCell>
-                  ))
+                  <TableCell align="center">
+
+                    <span style={{ color: "blue", fontWeight: "bold" }}>
+
+                      {cost !== 0 ? cost : ""}
+                    </span>
+                  </TableCell>
+                ))
                 : ""}
             </TableRow>
             <TableRow>
-              <TableCell align="right" colSpan={4}>
+
+              <TableCell align="right" colSpan={5}>
+
                 <span style={{ color: "blue", fontWeight: "bold" }}>
+
                   Chi phí LT cộng dồn
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[1].map((cost) => (
-                    <TableCell align="center">
-                      <span style={{ color: "blue", fontWeight: "bold" }}>
-                        {cost !== 0 ? cost : ""}
-                      </span>
-                    </TableCell>
-                  ))
+                  <TableCell align="center">
+
+                    <span style={{ color: "blue", fontWeight: "bold" }}>
+
+                      {cost !== 0 ? cost : ""}
+                    </span>
+                  </TableCell>
+                ))
                 : ""}
             </TableRow>
             <TableRow>
-              <TableCell align="right" colSpan={4}>
+
+              <TableCell align="right" colSpan={5}>
+
                 <span style={{ color: "red", fontWeight: "bold" }}>
+
                   Chi phí TT hằng ngày
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[2].map((cost) => (
-                    <TableCell align="center">
-                      <span style={{ color: "red", fontWeight: "bold" }}>
-                        {cost !== 0 ? cost : ""}
-                      </span>
-                    </TableCell>
-                  ))
+                  <TableCell align="center">
+
+                    <span style={{ color: "red", fontWeight: "bold" }}>
+
+                      {cost !== 0 ? cost : ""}
+                    </span>
+                  </TableCell>
+                ))
                 : ""}
             </TableRow>
             <TableRow>
-              <TableCell align="right" colSpan={4}>
+
+              <TableCell align="right" colSpan={5}>
+
                 <span style={{ color: "red", fontWeight: "bold" }}>
+
                   Chi phí TT cộng dồn
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[3].map((cost) => (
-                    <TableCell align="center">
-                      <span style={{ color: "red", fontWeight: "bold" }}>
-                        {cost !== 0 ? cost : ""}
-                      </span>
-                    </TableCell>
-                  ))
+                  <TableCell align="center">
+
+                    <span style={{ color: "red", fontWeight: "bold" }}>
+
+                      {cost !== 0 ? cost : ""}
+                    </span>
+                  </TableCell>
+                ))
                 : ""}
             </TableRow>
-          </TableBody>
+          </TableBody>;
         </Table>
       </TableContainer>
       <hr />
@@ -565,7 +447,7 @@ export const EarnedValueScreen = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setDataState([...dataState, { ...initialRow }])}
+          onClick={() => setDataState(dataState.concat(initialRow))}
         >
           Thêm Công Việc
         </Button>
@@ -587,24 +469,8 @@ export const EarnedValueScreen = () => {
         </Button>
       </div>
       <hr />
-      <div className="row">
-        <div className="col-3">
-          <h3 className="text-center">Chi phí ngân quỹ hàng tháng</h3>
-          <BChart data={ltDaiLyCostChartData} dataKey={"Chi phí LT"} />
-        </div>
-        <div className="col-3">
-          <h3 className="text-center">Chi phí ngân quỹ tích luỹ (BCWS)</h3>
-          <LChart data={ltCongDonCostChartData} dataKey={"Chi phí LT"} />
-        </div>
-        <div className="col-3">
-          <h3 className="text-center">Chi phí tích luỹ hàng tháng</h3>
-          <BChart data={ttDaiLyCostChartData} dataKey={"Chi phí TT"} />
-        </div>
-        <div className="col-3">
-          <h3 className="text-center">Chi phí thực tế (TT) tích luỹ (BCWS)</h3>
-          <LChart data={ttCongDonCostChartData} dataKey={"Chi phí TT"} />
-        </div>
-      </div>
+      <div className="row"> <div className="col-3"> <h3 className="text-center">Chi phí ngân quỹ hàng tháng</h3> <BChart data={ltDaiLyCostChartData} dataKey={"Chi phí LT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí ngân quỹ tích luỹ (BCWS)</h3> <LChart data={ltCongDonCostChartData} dataKey={"Chi phí LT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí tích luỹ hàng tháng</h3> <BChart data={ttDaiLyCostChartData} dataKey={"Chi phí TT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí thực tế (TT) tích luỹ (BCWS)</h3> <LChart data={ttCongDonCostChartData} dataKey={"Chi phí TT"} /> </div> </div>
+      <PercentCost BAC={costState && costState[1] ? costState[1].pop() : 0} data={dataState} bcws={costState[1]} acwp={costState[3]} setDataState={setDataState} />
       {JSON.stringify(dataState)}
     </>
   );

@@ -11,8 +11,7 @@ export const calculateTTCost = (dataState: any[]) => {
 };
 
 export const calculateTTTCD = (arr: number[]) => {
-  const array = arr.filter((e) => e !== 0);
-  const new_array = [...array];
+  const new_array = [...arr];
   for (let i = 1; i < new_array.length; i++) {
     new_array[i] += new_array[i - 1];
   }

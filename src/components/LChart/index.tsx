@@ -8,6 +8,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  ReferenceLine
 } from "recharts";
 
 interface AreaChartProps {
@@ -24,6 +25,7 @@ export const LChart = (props: AreaChartProps) => {
         <YAxis />
         <Tooltip />
         <Legend />
+        <ReferenceLine x="Page C" stroke="red" label="Max PV PAGE" />
         <Line
           type="monotone"
           dataKey={dataKey}
@@ -31,6 +33,7 @@ export const LChart = (props: AreaChartProps) => {
           activeDot={{ r: 8 }}
         />
       </LineChart>
+
     </ResponsiveContainer>
   );
 };
