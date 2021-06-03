@@ -116,7 +116,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
         uid: uid,
         id: item_id,
       };
-      await api.put("/api/admin/update", updatedData);
+      await api.put("api/admin/update", updatedData);
       notifyUpdateSuccess();
     } catch (error) {
       notifyUpdateError();
@@ -139,7 +139,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
     };
     try {
       await api.post(
-        `/api/admin/delete/uid=${String(uid)}}/id=${String(item_id)}`,
+        `api/admin/delete/uid=${String(uid)}}/id=${String(item_id)}`,
         newData
       );
       notifyDeleteSuccess();

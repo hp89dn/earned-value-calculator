@@ -81,7 +81,7 @@ export const DashboardScreen = () => {
       created_at: new Date(),
     };
     try {
-      const response = await axios.post("/api/admin/create", newData);
+      const response = await axios.post("api/admin/create", newData);
       notifyCreateSuccess();
       history.push("/earnvalue/" + response.data.id);
     } catch (error) {
@@ -96,7 +96,7 @@ export const DashboardScreen = () => {
     };
     try {
       await axios.post(
-        `/api/admin/delete/uid=${String(uid)}}/id=${String(id)}`,
+        `api/admin/delete/uid=${String(uid)}}/id=${String(id)}`,
         newData
       );
       notifyDeleteSuccess();
