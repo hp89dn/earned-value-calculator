@@ -1,9 +1,9 @@
 import React from "react";
-import { Router } from 'react-router';
-import { createBrowserHistory } from 'history';
+import { Router } from "react-router";
+import { createBrowserHistory } from "history";
 import "./App.css";
 import { DrawerContainer } from "./containers";
-import firebase from 'firebase';
+import firebase from "firebase";
 import { FirebaseAuthProvider } from "@react-firebase/auth";
 import { FirestoreProvider } from "@react-firebase/firestore";
 
@@ -16,9 +16,11 @@ const firebaseConfig = {
   storageBucket: "earned-value-calculator.appspot.com",
   messagingSenderId: "682362722561",
   appId: "1:682362722561:web:6979c99ad9960d41b9e300",
-  databaseURL: "https://earned-value-calculator.firebaseio.com"
+  databaseURL: "https://earned-value-calculator.firebaseio.com",
 };
-const LayoutContainer = React.lazy(() => import('./routes').then(({ Layout }) => ({ default: Layout })));
+const LayoutContainer = React.lazy(() =>
+  import("./routes").then(({ Layout }) => ({ default: Layout }))
+);
 
 function App() {
   return (
@@ -27,8 +29,11 @@ function App() {
         <React.StrictMode>
           <FirebaseAuthProvider {...firebaseConfig} firebase={firebase}>
             <FirestoreProvider {...firebaseConfig} firebase={firebase}>
-              {/* <div style={{ position: 'fixed', width: '100vw', top: 0, zIndex: 999, backgroundColor: '#ffffff', boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)' }}> */}
-              <DrawerContainer><LayoutContainer /></DrawerContainer>
+              <div>
+                <DrawerContainer>
+                  <LayoutContainer />
+                </DrawerContainer>
+              </div>
             </FirestoreProvider>
           </FirebaseAuthProvider>
         </React.StrictMode>

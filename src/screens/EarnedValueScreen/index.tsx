@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -6,9 +6,10 @@ import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import { test1 } from "../../data/test";
-import { Button, IconButton } from "@material-ui/core";
+import { Button, IconButton, Input } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
+import api from "../../api/index";
+import { ToastContainer, toast } from "react-toastify";
 
 import {
   calculateLTCD,
@@ -20,8 +21,10 @@ import {
 } from "../../helpers";
 import * as XLSX from "xlsx";
 import { BChart, LChart } from "../../components";
-import { PercentCost } from '../../containers';
-import NumberPrecision from 'number-precision';
+import { PercentCost } from "../../containers";
+import NumberPrecision from "number-precision";
+import { useHistory } from "react-router";
+import { SaveOutlined } from "@material-ui/icons";
 NumberPrecision.enableBoundaryChecking(false); // default param is true
 
 const useStyles = makeStyles({
@@ -41,14 +44,52 @@ export interface Row {
 }
 
 const initialRow: Row = {
-  name: "", cost: 0, d: 0, type: ["LT", "TT"], pred: "-", months: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],], percent: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],]
+  name: "",
+  cost: 0,
+  d: 0,
+  type: ["LT", "TT"],
+  pred: "-",
+  months: [
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+  ],
+  percent: [
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+  ],
 };
 interface EarnedValueScreenProps {
+  project_name: string;
   data: Row[];
+  uid: string;
+  item_id: string;
 }
 export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
   const classes = useStyles();
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const [projectNameState, setProjectNameState] = useState(
+    props.project_name || ""
+  );
   const [dataState, setDataState] = useState<Row[]>(props.data);
   const rows: Row[] = JSON.parse(JSON.stringify(dataState));
   const [costState, setCostState] = useState<number[][]>([]);
@@ -62,6 +103,25 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
     setCostCDState(ltCDCost);
     setCostState(JSON.parse(JSON.stringify(cost)));
   }, [dataState]);
+  const notifyUpdateSuccess = () => toast("Lưu thành công");
+  const notifyUpdateError = () => toast("Lưu thất bại");
+
+  const { uid, item_id } = props;
+
+  const handleSave = async () => {
+    try {
+      const updatedData = {
+        project_name: projectNameState,
+        data: JSON.stringify(dataState),
+        uid: uid,
+        id: item_id,
+      };
+      await api.put("/api/admin/update", updatedData);
+      notifyUpdateSuccess();
+    } catch (error) {
+      notifyUpdateError();
+    }
+  };
 
   const handleDeleteRow = (i: number): void => {
     const datas = JSON.parse(JSON.stringify(dataState));
@@ -69,9 +129,47 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
     setDataState([]);
     setDataState([...newArray]);
   };
+  const notifyDeleteSuccess = () => toast("Xoá thành công");
+  const notifyDeleteError = () => toast("Xoá thất bại");
+  const history = useHistory();
+  const handleDeleteItem = async () => {
+    const newData = {
+      uid: uid,
+      id: item_id,
+    };
+    try {
+      await api.post(
+        `/api/admin/delete/uid=${String(uid)}}/id=${String(item_id)}`,
+        newData
+      );
+      notifyDeleteSuccess();
+      history.push("/dashboard");
+    } catch (error) {
+      notifyDeleteError();
+    }
+  };
 
   const handleExportExcel = () => {
-    const headers = ["STT", "Công việc", "Chi phí", "D", "Pred", "Loại", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12",];
+    const headers = [
+      "STT",
+      "Công việc",
+      "Chi phí",
+      "D",
+      "Pred",
+      "Loại",
+      "Tháng 1",
+      "Tháng 2",
+      "Tháng 3",
+      "Tháng 4",
+      "Tháng 5",
+      "Tháng 6",
+      "Tháng 7",
+      "Tháng 8",
+      "Tháng 9",
+      "Tháng 10",
+      "Tháng 11",
+      "Tháng 12",
+    ];
 
     // jobs data
     const rows = getJobRowExcelData(dataState);
@@ -142,18 +240,54 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
             pred: data[i]["Pred"],
             type: [data[i]["Loại"], data[i + 1]["Loại"]],
             months: [
-              [Number(data[i]["Tháng 1"]) || 0, Number(data[i + 1]["Tháng 1"]) || 0],
-              [Number(data[i]["Tháng 2"]) || 0, Number(data[i + 1]["Tháng 2"]) || 0],
-              [Number(data[i]["Tháng 3"]) || 0, Number(data[i + 1]["Tháng 3"]) || 0],
-              [Number(data[i]["Tháng 4"]) || 0, Number(data[i + 1]["Tháng 4"]) || 0],
-              [Number(data[i]["Tháng 5"]) || 0, Number(data[i + 1]["Tháng 5"]) || 0],
-              [Number(data[i]["Tháng 6"]) || 0, Number(data[i + 1]["Tháng 6"]) || 0],
-              [Number(data[i]["Tháng 7"]) || 0, Number(data[i + 1]["Tháng 7"]) || 0],
-              [Number(data[i]["Tháng 8"]) || 0, Number(data[i + 1]["Tháng 8"]) || 0],
-              [Number(data[i]["Tháng 9"]) || 0, Number(data[i + 1]["Tháng 9"]) || 0],
-              [Number(data[i]["Tháng 10"]) || 0, Number(data[i + 1]["Tháng 10"]) || 0],
-              [Number(data[i]["Tháng 11"]) || 0, Number(data[i + 1]["Tháng 11"]) || 0],
-              [Number(data[i]["Tháng 12"]) || 0, Number(data[i + 1]["Tháng 12"]) || 0],
+              [
+                Number(data[i]["Tháng 1"]) || 0,
+                Number(data[i + 1]["Tháng 1"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 2"]) || 0,
+                Number(data[i + 1]["Tháng 2"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 3"]) || 0,
+                Number(data[i + 1]["Tháng 3"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 4"]) || 0,
+                Number(data[i + 1]["Tháng 4"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 5"]) || 0,
+                Number(data[i + 1]["Tháng 5"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 6"]) || 0,
+                Number(data[i + 1]["Tháng 6"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 7"]) || 0,
+                Number(data[i + 1]["Tháng 7"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 8"]) || 0,
+                Number(data[i + 1]["Tháng 8"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 9"]) || 0,
+                Number(data[i + 1]["Tháng 9"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 10"]) || 0,
+                Number(data[i + 1]["Tháng 10"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 11"]) || 0,
+                Number(data[i + 1]["Tháng 11"]) || 0,
+              ],
+              [
+                Number(data[i]["Tháng 12"]) || 0,
+                Number(data[i + 1]["Tháng 12"]) || 0,
+              ],
             ],
             percent: [
               [0, 0],
@@ -168,7 +302,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
               [0, 0],
               [0, 0],
               [0, 0],
-            ]
+            ],
           };
           jobs.push(jobData);
         }
@@ -190,7 +324,46 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
   };
 
   const getChartData = () => {
-    const ltDaiLyCost = [], ltCongDonCost = [], ttDaiLyCost = [], ttCongDonCost = []; for (let index = 0; index < 12; index++) { ltDaiLyCost.push({ name: `${index + 1}`, "Chi phí LT": costState[0] && costState[0][index] !== 0 ? costState[0][index] : null, }); ltCongDonCost.push({ name: `${index + 1}`, "Chi phí LT": costState[1] && costState[1][index] !== 0 ? costState[1][index] : null, }); ttDaiLyCost.push({ name: `${index + 1}`, "Chi phí TT": costState[2] && costState[2][index] !== 0 ? costState[2][index] : null, }); ttCongDonCost.push({ name: `${index + 1}`, "Chi phí TT": costState[3] && costState[3][index] !== 0 ? costState[3][index] : null, }); } return [[...ltDaiLyCost], [...ltCongDonCost], [...ttDaiLyCost], [...ttCongDonCost],];
+    const ltDaiLyCost = [],
+      ltCongDonCost = [],
+      ttDaiLyCost = [],
+      ttCongDonCost = [];
+    for (let index = 0; index < 12; index++) {
+      ltDaiLyCost.push({
+        name: `${index + 1}`,
+        "Chi phí LT":
+          costState[0] && costState[0][index] !== 0
+            ? costState[0][index]
+            : null,
+      });
+      ltCongDonCost.push({
+        name: `${index + 1}`,
+        "Chi phí LT":
+          costState[1] && costState[1][index] !== 0
+            ? costState[1][index]
+            : null,
+      });
+      ttDaiLyCost.push({
+        name: `${index + 1}`,
+        "Chi phí TT":
+          costState[2] && costState[2][index] !== 0
+            ? costState[2][index]
+            : null,
+      });
+      ttCongDonCost.push({
+        name: `${index + 1}`,
+        "Chi phí TT":
+          costState[3] && costState[3][index] !== 0
+            ? costState[3][index]
+            : null,
+      });
+    }
+    return [
+      [...ltDaiLyCost],
+      [...ltCongDonCost],
+      [...ttDaiLyCost],
+      [...ttCongDonCost],
+    ];
   };
 
   const [
@@ -202,6 +375,38 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
 
   return (
     <>
+      <div className="d-flex flex-row flex-wrap">
+        <div>
+          <label>Tên Dự Án: </label>
+          <Input
+            style={{ marginLeft: "1rem" }}
+            placeholder="Nhập Tên Dự Án"
+            type="text"
+            value={projectNameState}
+            onChange={(e) => setProjectNameState(e.target.value)}
+          />
+        </div>
+        <div style={{ marginLeft: "1rem" }}>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            color="primary"
+            component="label"
+          >
+            <SaveOutlined /> Lưu
+          </Button>
+          <Button
+            onClick={handleDeleteItem}
+            variant="contained"
+            color="secondary"
+            component="label"
+            style={{ marginLeft: "1rem" }}
+          >
+            <DeleteIcon /> Xoá
+          </Button>
+        </div>
+      </div>
+      <hr />
       <TableContainer>
         <Table
           className={classes.table}
@@ -223,16 +428,12 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-
             {rows.map((row, index) => (
               <TableRow key={index}>
-
                 <TableCell align="center">
-
                   <span style={{ width: "5px" }}>{index + 1}</span>
                 </TableCell>
                 <TableCell align="center">
-
                   <input
                     type="text"
                     min={0}
@@ -246,10 +447,8 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
                   />
                 </TableCell>
                 <TableCell align="center">
-
                   {
                     <span style={{ width: "40px" }}>
-
                       {dataState[index].months
                         .map((month) => month[0])
                         .reduce((a, b) => a + b, 0)}
@@ -257,18 +456,16 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
                   }
                 </TableCell>
                 <TableCell align="center">
-
                   {
                     <span style={{ width: "40px" }}>
-
                       {
-                        dataState[index].months.filter((month) => month[0] > 0).length
+                        dataState[index].months.filter((month) => month[0] > 0)
+                          .length
                       }
                     </span>
                   }
                 </TableCell>
                 <TableCell align="center">
-
                   {
                     <input
                       type="text"
@@ -284,19 +481,20 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
                   }
                 </TableCell>
                 <TableCell align="center">
-
                   {row.type.map((t, i) => (
-                    <div style={{ color: i === 0 ? "blue" : "red", fontWeight: "bold" }}>
-
+                    <div
+                      style={{
+                        color: i === 0 ? "blue" : "red",
+                        fontWeight: "bold",
+                      }}
+                    >
                       {t}
                     </div>
                   ))}
                 </TableCell>
                 {row.months.map((r, i) => (
                   <TableCell align="center">
-
                     <div>
-
                       <input
                         style={{
                           width: "40px",
@@ -311,15 +509,22 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
                         value={r[0]}
                         onChange={(e) => {
                           const data = JSON.parse(JSON.stringify(dataState));
-                          const cost = data[index].months.map((m: any) => m[0]).reduce((a: number, b: number) => (a + b), 0);
-                          data[index].percent[i][1] = NumberPrecision.times(NumberPrecision.divide(data[index].percent[i][0], 100), Number(cost));
+                          const cost = data[index].months
+                            .map((m: any) => m[0])
+                            .reduce((a: number, b: number) => a + b, 0);
+                          data[index].percent[i][1] = NumberPrecision.times(
+                            NumberPrecision.divide(
+                              data[index].percent[i][0],
+                              100
+                            ),
+                            Number(cost)
+                          );
                           data[index].months[i][0] = Number(e.target.value);
                           setDataState(data);
                         }}
                       />
                     </div>
                     <div>
-
                       <input
                         style={{
                           width: "40px",
@@ -342,103 +547,82 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
                   </TableCell>
                 ))}
                 <TableCell>
-
                   <IconButton
                     onClick={() => handleDeleteRow(index)}
                     color="secondary"
                     aria-label="delete"
                   >
-
                     <DeleteIcon fontSize="large" />
                   </IconButton>
                 </TableCell>
               </TableRow>
             ))}
             <TableRow>
-
               <TableCell rowSpan={4} />
               <TableCell align="right" colSpan={5}>
-
                 <span style={{ color: "blue", fontWeight: "bold" }}>
-
                   Chi phí LT hằng ngày
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[0].map((cost) => (
-                  <TableCell align="center">
-
-                    <span style={{ color: "blue", fontWeight: "bold" }}>
-
-                      {cost !== 0 ? cost : ""}
-                    </span>
-                  </TableCell>
-                ))
+                    <TableCell align="center">
+                      <span style={{ color: "blue", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
+                  ))
                 : ""}
             </TableRow>
             <TableRow>
-
               <TableCell align="right" colSpan={5}>
-
                 <span style={{ color: "blue", fontWeight: "bold" }}>
-
                   Chi phí LT cộng dồn
                 </span>
               </TableCell>
               {costLTCDState
                 ? costLTCDState.map((cost) => (
-                  <TableCell align="center">
-                    <span style={{ color: "blue", fontWeight: "bold" }}>
-
-                      {cost !== 0 ? cost : ""}
-                    </span>
-                  </TableCell>
-                ))
+                    <TableCell align="center">
+                      <span style={{ color: "blue", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
+                  ))
                 : ""}
             </TableRow>
             <TableRow>
-
               <TableCell align="right" colSpan={5}>
-
                 <span style={{ color: "red", fontWeight: "bold" }}>
-
                   Chi phí TT hằng ngày
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[2].map((cost) => (
-                  <TableCell align="center">
-
-                    <span style={{ color: "red", fontWeight: "bold" }}>
-
-                      {cost !== 0 ? cost : ""}
-                    </span>
-                  </TableCell>
-                ))
+                    <TableCell align="center">
+                      <span style={{ color: "red", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
+                  ))
                 : ""}
             </TableRow>
             <TableRow>
-
               <TableCell align="right" colSpan={5}>
-
                 <span style={{ color: "red", fontWeight: "bold" }}>
-
                   Chi phí TT cộng dồn
                 </span>
               </TableCell>
               {costState && costState[0]
                 ? costState[3].map((cost) => (
-                  <TableCell align="center">
-
-                    <span style={{ color: "red", fontWeight: "bold" }}>
-
-                      {cost !== 0 ? cost : ""}
-                    </span>
-                  </TableCell>
-                ))
+                    <TableCell align="center">
+                      <span style={{ color: "red", fontWeight: "bold" }}>
+                        {cost !== 0 ? cost : ""}
+                      </span>
+                    </TableCell>
+                  ))
                 : ""}
             </TableRow>
-          </TableBody>;
+          </TableBody>
         </Table>
       </TableContainer>
       <hr />
@@ -450,6 +634,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
         >
           Thêm Công Việc
         </Button>
+
         <Button
           variant="contained"
           color="primary"
@@ -468,9 +653,39 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
         </Button>
       </div>
       <hr />
-      <div className="row"> <div className="col-3"> <h3 className="text-center">Chi phí ngân quỹ hàng tháng</h3> <BChart data={ltDaiLyCostChartData} dataKey={"Chi phí LT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí ngân quỹ tích luỹ (BCWS)</h3> <LChart data={ltCongDonCostChartData} dataKey={"Chi phí LT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí tích luỹ hàng tháng</h3> <BChart data={ttDaiLyCostChartData} dataKey={"Chi phí TT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí thực tế (TT) tích luỹ (BCWS)</h3> <LChart data={ttCongDonCostChartData} dataKey={"Chi phí TT"} /> </div> </div>
-      <PercentCost BAC={costState && costState[1] ? costState[1].pop() : 0} data={dataState} bcws={costState[1]} acwp={costState[3]} setDataState={setDataState} />
-      {JSON.stringify(dataState)}
+      <div className="row">
+        {" "}
+        <div className="col-3">
+          {" "}
+          <h3 className="text-center">Chi phí ngân quỹ hàng tháng</h3>{" "}
+          <BChart data={ltDaiLyCostChartData} dataKey={"Chi phí LT"} />{" "}
+        </div>{" "}
+        <div className="col-3">
+          {" "}
+          <h3 className="text-center">Chi phí ngân quỹ tích luỹ (BCWS)</h3>{" "}
+          <LChart data={ltCongDonCostChartData} dataKey={"Chi phí LT"} />{" "}
+        </div>{" "}
+        <div className="col-3">
+          {" "}
+          <h3 className="text-center">Chi phí tích luỹ hàng tháng</h3>{" "}
+          <BChart data={ttDaiLyCostChartData} dataKey={"Chi phí TT"} />{" "}
+        </div>{" "}
+        <div className="col-3">
+          {" "}
+          <h3 className="text-center">
+            Chi phí thực tế (TT) tích luỹ (BCWS)
+          </h3>{" "}
+          <LChart data={ttCongDonCostChartData} dataKey={"Chi phí TT"} />{" "}
+        </div>{" "}
+      </div>
+      <PercentCost
+        BAC={costState && costState[1] ? costState[1].pop() : 0}
+        data={dataState}
+        bcws={costState[1]}
+        acwp={costState[3]}
+        setDataState={setDataState}
+      />
+      <ToastContainer />
     </>
   );
 };

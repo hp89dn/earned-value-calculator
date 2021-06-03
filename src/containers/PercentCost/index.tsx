@@ -164,7 +164,7 @@ export const PercentCost = (props: PercentCostProps) => {
 
                             }
                         </TableRow>
-                    </TableBody>;
+                    </TableBody>
                 </Table>
             </TableContainer>
             <hr />
