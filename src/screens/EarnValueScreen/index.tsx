@@ -18,7 +18,7 @@ export const EarnValueScreen = () => {
                                     setIsLoading(d.isLoading);
                                     const list = d && d.value && d.value.list ? d.value.list : '';
                                     if (!d.isLoading && list) {
-                                        return d.isLoading ? "Loading" : <EarnedValueScreen />;
+                                        return d.isLoading ? "Loading" : <EarnedValueScreen data={JSON.parse(list)} />;
                                     }
 
                                 }}

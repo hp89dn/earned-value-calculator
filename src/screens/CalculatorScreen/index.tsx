@@ -7,7 +7,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import { test1 } from "../../data/test";
-import { Button, IconButton, TextField } from "@material-ui/core";
+import { Button, IconButton } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
 
 import {
@@ -44,25 +44,22 @@ const initialRow: Row = {
     name: "", cost: 0, d: 0, type: ["LT", "TT"], pred: "-", months: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],], percent: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],]
 };
 
-
 export const CalculatorScreen = () => {
     const classes = useStyles();
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const [dataState, setDataState] = useState<Row[]>([]);
-    const rows: Row[] = [...dataState];
+    const rows: Row[] = JSON.parse(JSON.stringify(dataState));
     const [costState, setCostState] = useState<number[][]>([]);
-    const handleCalculate = useCallback(() => {
+    const [costLTCDState, setCostCDState] = useState<number[]>([]);
+    React.useEffect(() => {
         const ltCost = calculateLTCost(dataState);
         const ltCDCost = calculateLTCD(ltCost);
         const ttCost = calculateTTCost(dataState);
         const ttCDCost = calculateTTTCD(ttCost);
         const cost = [[...ltCost], [...ltCDCost], [...ttCost], [...ttCDCost]];
-        setCostState(cost);
+        setCostCDState(ltCDCost);
+        setCostState(JSON.parse(JSON.stringify(cost)));
     }, [dataState]);
-
-    React.useEffect(() => {
-        handleCalculate();
-    }, [handleCalculate]);
 
     const handleDeleteRow = (i: number): void => {
         const datas = JSON.parse(JSON.stringify(dataState));
@@ -234,13 +231,13 @@ export const CalculatorScreen = () => {
                                 </TableCell>
                                 <TableCell align="center">
 
-                                    <TextField
+                                    <input
                                         type="text"
-                                        variant="filled"
+                                        min={0}
                                         placeholder="Nhập tên công việc"
                                         value={dataState[index].name}
                                         onChange={(e) => {
-                                            const data = [...dataState];
+                                            const data = JSON.parse(JSON.stringify(dataState));
                                             data[index].name = e.target.value;
                                             setDataState([...data]);
                                         }}
@@ -251,9 +248,9 @@ export const CalculatorScreen = () => {
                                     {
                                         <span style={{ width: "40px" }}>
 
-                                            {dataState[index] ? dataState[index].months
+                                            {dataState[index].months
                                                 .map((month) => month[0])
-                                                .reduce((a, b) => a + b, 0) : ""}
+                                                .reduce((a, b) => a + b, 0)}
                                         </span>
                                     }
                                 </TableCell>
@@ -271,14 +268,13 @@ export const CalculatorScreen = () => {
                                 <TableCell align="center">
 
                                     {
-                                        <TextField
-                                            variant="filled"
+                                        <input
                                             type="text"
-                                            style={{ width: "40px" }}
+                                            style={{ width: "25px" }}
                                             placeholder=""
                                             value={dataState[index].pred}
                                             onChange={(e) => {
-                                                const data = [...dataState];
+                                                const data = JSON.parse(JSON.stringify(dataState));
                                                 data[index].pred = e.target.value;
                                                 setDataState([...data]);
                                             }}
@@ -312,8 +308,8 @@ export const CalculatorScreen = () => {
                                                 min={0}
                                                 value={r[0]}
                                                 onChange={(e) => {
-                                                    const data = [...dataState];
-                                                    const cost = data[index].months.map(m => m[0]).reduce((a, b) => (a + b), 0);
+                                                    const data = JSON.parse(JSON.stringify(dataState));
+                                                    const cost = data[index].months.map((m: any) => m[0]).reduce((a: number, b: number) => (a + b), 0);
                                                     data[index].percent[i][1] = NumberPrecision.times(NumberPrecision.divide(data[index].percent[i][0], 100), Number(cost));
                                                     data[index].months[i][0] = Number(e.target.value);
                                                     setDataState(data);
@@ -335,7 +331,7 @@ export const CalculatorScreen = () => {
                                                 min={0}
                                                 value={r[1]}
                                                 onChange={(e) => {
-                                                    const data = [...dataState];
+                                                    const data = JSON.parse(JSON.stringify(dataState));
                                                     data[index].months[i][1] = Number(e.target.value);
                                                     setDataState(data);
                                                 }}
@@ -387,10 +383,9 @@ export const CalculatorScreen = () => {
                                     Chi phí LT cộng dồn
                 </span>
                             </TableCell>
-                            {costState && costState[0]
-                                ? costState[1].map((cost) => (
+                            {costLTCDState
+                                ? costLTCDState.map((cost) => (
                                     <TableCell align="center">
-
                                         <span style={{ color: "blue", fontWeight: "bold" }}>
 
                                             {cost !== 0 ? cost : ""}
@@ -449,7 +444,7 @@ export const CalculatorScreen = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => setDataState(dataState.concat(initialRow))}
+                    onClick={() => setDataState([...dataState, { ...initialRow }])}
                 >
                     Thêm Công Việc
         </Button>
@@ -472,11 +467,7 @@ export const CalculatorScreen = () => {
             </div>
             <hr />
             <div className="row"> <div className="col-3"> <h3 className="text-center">Chi phí ngân quỹ hàng tháng</h3> <BChart data={ltDaiLyCostChartData} dataKey={"Chi phí LT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí ngân quỹ tích luỹ (BCWS)</h3> <LChart data={ltCongDonCostChartData} dataKey={"Chi phí LT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí tích luỹ hàng tháng</h3> <BChart data={ttDaiLyCostChartData} dataKey={"Chi phí TT"} /> </div> <div className="col-3"> <h3 className="text-center">Chi phí thực tế (TT) tích luỹ (BCWS)</h3> <LChart data={ttCongDonCostChartData} dataKey={"Chi phí TT"} /> </div> </div>
-            <div className="row">
-                <div className="col-12">
-                    <PercentCost BAC={costState && costState[1] ? costState[1].pop() : 0} data={dataState} bcws={costState[1]} acwp={costState[3]} setDataState={setDataState} />
-                </div>
-            </div>
+            <PercentCost BAC={costState && costState[1] ? costState[1].pop() : 0} data={dataState} bcws={costState[1]} acwp={costState[3]} setDataState={setDataState} />
             {JSON.stringify(dataState)}
         </>
     );

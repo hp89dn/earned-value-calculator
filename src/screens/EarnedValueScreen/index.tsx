@@ -43,25 +43,25 @@ export interface Row {
 const initialRow: Row = {
   name: "", cost: 0, d: 0, type: ["LT", "TT"], pred: "-", months: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],], percent: [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0],]
 };
-
-export const EarnedValueScreen = () => {
+interface EarnedValueScreenProps {
+  data: Row[];
+}
+export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
   const classes = useStyles();
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const [dataState, setDataState] = useState<Row[]>(test1);
-  const rows: Row[] = [...dataState];
+  const [dataState, setDataState] = useState<Row[]>(props.data);
+  const rows: Row[] = JSON.parse(JSON.stringify(dataState));
   const [costState, setCostState] = useState<number[][]>([]);
-  const handleCalculate = useCallback(() => {
+  const [costLTCDState, setCostCDState] = useState<number[]>([]);
+  React.useEffect(() => {
     const ltCost = calculateLTCost(dataState);
     const ltCDCost = calculateLTCD(ltCost);
     const ttCost = calculateTTCost(dataState);
     const ttCDCost = calculateTTTCD(ttCost);
     const cost = [[...ltCost], [...ltCDCost], [...ttCost], [...ttCDCost]];
-    setCostState(cost);
+    setCostCDState(ltCDCost);
+    setCostState(JSON.parse(JSON.stringify(cost)));
   }, [dataState]);
-
-  React.useEffect(() => {
-    handleCalculate();
-  }, [handleCalculate]);
 
   const handleDeleteRow = (i: number): void => {
     const datas = JSON.parse(JSON.stringify(dataState));
@@ -239,7 +239,7 @@ export const EarnedValueScreen = () => {
                     placeholder="Nhập tên công việc"
                     value={dataState[index].name}
                     onChange={(e) => {
-                      const data = [...dataState];
+                      const data = JSON.parse(JSON.stringify(dataState));
                       data[index].name = e.target.value;
                       setDataState([...data]);
                     }}
@@ -276,7 +276,7 @@ export const EarnedValueScreen = () => {
                       placeholder=""
                       value={dataState[index].pred}
                       onChange={(e) => {
-                        const data = [...dataState];
+                        const data = JSON.parse(JSON.stringify(dataState));
                         data[index].pred = e.target.value;
                         setDataState([...data]);
                       }}
@@ -310,8 +310,8 @@ export const EarnedValueScreen = () => {
                         min={0}
                         value={r[0]}
                         onChange={(e) => {
-                          const data = [...dataState];
-                          const cost = data[index].months.map(m => m[0]).reduce((a, b) => (a + b), 0);
+                          const data = JSON.parse(JSON.stringify(dataState));
+                          const cost = data[index].months.map((m: any) => m[0]).reduce((a: number, b: number) => (a + b), 0);
                           data[index].percent[i][1] = NumberPrecision.times(NumberPrecision.divide(data[index].percent[i][0], 100), Number(cost));
                           data[index].months[i][0] = Number(e.target.value);
                           setDataState(data);
@@ -333,7 +333,7 @@ export const EarnedValueScreen = () => {
                         min={0}
                         value={r[1]}
                         onChange={(e) => {
-                          const data = [...dataState];
+                          const data = JSON.parse(JSON.stringify(dataState));
                           data[index].months[i][1] = Number(e.target.value);
                           setDataState(data);
                         }}
@@ -385,10 +385,9 @@ export const EarnedValueScreen = () => {
                   Chi phí LT cộng dồn
                 </span>
               </TableCell>
-              {costState && costState[0]
-                ? costState[1].map((cost) => (
+              {costLTCDState
+                ? costLTCDState.map((cost) => (
                   <TableCell align="center">
-
                     <span style={{ color: "blue", fontWeight: "bold" }}>
 
                       {cost !== 0 ? cost : ""}

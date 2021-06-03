@@ -11,8 +11,10 @@ export const calculateLTCost = (dataState: any[]) => {
 
 export const calculateLTCD = (arr: number[]) => {
   const new_array = [...arr];
+
   for (let i = 1; i < new_array.length; i++) {
     new_array[i] += new_array[i - 1];
   }
-  return new_array;
+
+  return JSON.parse(JSON.stringify(new_array));
 };
