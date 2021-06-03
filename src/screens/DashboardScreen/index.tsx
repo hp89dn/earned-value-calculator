@@ -10,7 +10,7 @@ import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
 import Typography from "@material-ui/core/Typography";
 import { useHistory } from "react-router";
-import axios from "axios";
+import axios from "../../api/index";
 import { ToastContainer, toast } from "react-toastify";
 import * as datefns from "date-fns";
 import { AddBoxTwoTone } from "@material-ui/icons";
@@ -83,10 +83,7 @@ export const DashboardScreen = () => {
       created_at: new Date(),
     };
     try {
-      const response = await axios.post(
-        "https:/guarded-tor-72248.herokuapp.com/api/admin/create",
-        newData
-      );
+      const response = await axios.post("api/admin/create", newData);
       notifyCreateSuccess();
       history.push("/earnvalue/" + response.data.id);
     } catch (error) {
@@ -94,20 +91,19 @@ export const DashboardScreen = () => {
     }
   };
 
-  const handleDeleteItem = async (uid: string, id: string) => {
+  const handleDeleteItem = (uid: string, id: string) => {
     const newData = {
       uid: uid,
       id: id,
     };
-    try {
-      await axios.post(
-        `https:/guarded-tor-72248.herokuapp.com/api/admin/delete/uid=${String(uid)}}/id=${String(id)}`,
-        newData
-      );
-      notifyDeleteSuccess();
-    } catch (error) {
-      notifyDeleteError();
-    }
+    axios
+      .post(`api/admin/delete/uid=${String(uid)}}/id=${String(id)}`, newData)
+      .then(() => {
+        notifyDeleteSuccess();
+      })
+      .catch(() => {
+        notifyDeleteError();
+      });
   };
   return (
     <div>
