@@ -10,7 +10,7 @@ import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
 import Typography from "@material-ui/core/Typography";
 import { useHistory } from "react-router";
-import axios from "../../api/index";
+import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import * as datefns from "date-fns";
 import { AddBoxTwoTone } from "@material-ui/icons";
@@ -47,11 +47,13 @@ export const DashboardScreen = () => {
           />
           <CardContent>
             <Typography gutterBottom variant="h5" component="h2">
-              {project_name  ? project_name : "(Chưa có tên)"}
+              {project_name ? project_name : "(Chưa có tên)"}
             </Typography>
             <Typography variant="body2" color="textSecondary" component="p">
               Đã tạo:{" "}
-              {datefns.formatDistance(new Date(created_at), new Date()) + " | " + datefns.format(new Date(created_at), 'dd/MM/yyyy HH:mm:ss')}
+              {datefns.formatDistance(new Date(created_at), new Date()) +
+                " | " +
+                datefns.format(new Date(created_at), "dd/MM/yyyy HH:mm:ss")}
             </Typography>
           </CardContent>
         </CardActionArea>
@@ -81,7 +83,10 @@ export const DashboardScreen = () => {
       created_at: new Date(),
     };
     try {
-      const response = await axios.post("api/admin/create", newData);
+      const response = await axios.post(
+        "https:/guarded-tor-72248.herokuapp.com/api/admin/create",
+        newData
+      );
       notifyCreateSuccess();
       history.push("/earnvalue/" + response.data.id);
     } catch (error) {
@@ -96,7 +101,7 @@ export const DashboardScreen = () => {
     };
     try {
       await axios.post(
-        `api/admin/delete/uid=${String(uid)}}/id=${String(id)}`,
+        `https:/guarded-tor-72248.herokuapp.com/api/admin/delete/uid=${String(uid)}}/id=${String(id)}`,
         newData
       );
       notifyDeleteSuccess();

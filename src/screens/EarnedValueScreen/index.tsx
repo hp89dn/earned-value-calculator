@@ -8,7 +8,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import { Button, IconButton, Input } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
-import api from "../../api/index";
+import api from "axios";
 import { ToastContainer, toast } from "react-toastify";
 
 import {
@@ -116,7 +116,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
         uid: uid,
         id: item_id,
       };
-      await api.put("api/admin/update", updatedData);
+      await api.put("https:/guarded-tor-72248.herokuapp.com/api/admin/update", updatedData);
       notifyUpdateSuccess();
     } catch (error) {
       notifyUpdateError();
@@ -139,7 +139,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
     };
     try {
       await api.post(
-        `api/admin/delete/uid=${String(uid)}}/id=${String(item_id)}`,
+        `https:/guarded-tor-72248.herokuapp.com/api/admin/delete/uid=${String(uid)}}/id=${String(item_id)}`,
         newData
       );
       notifyDeleteSuccess();
