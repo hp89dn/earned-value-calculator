@@ -104,7 +104,7 @@ export const CostSummary = (props: CostSummaryProps) => {
                             EAC = ACWP + ETC = {ACWP} + {ETC} = {EAC}
                         </li>
                     </ul>
-                    <span className="text-info font-weight-bold">** Gợi ý:</span>
+                    <span className="text-info font-weight-bold">** Chú thích:</span>
                     <ul>
                         <li> BAC: Cả công trình</li>
                         <li>ETC: Chi phí ước tính để làm hết phần còn lại</li>
