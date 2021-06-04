@@ -77,18 +77,20 @@ export const DashboardScreen = () => {
     );
   };
 
-  const handleCreateNewItem = async (uid: string) => {
+  const handleCreateNewItem = (uid: string) => {
     const newData = {
       uid: uid,
       created_at: new Date(),
     };
-    try {
-      const response = await axios.post("api/admin/create", newData);
-      notifyCreateSuccess();
-      history.push("/earnvalue/" + response.data.id);
-    } catch (error) {
-      notifyCreateError();
-    }
+    axios
+      .post("api/admin/create", newData)
+      .then((response) => {
+        notifyCreateSuccess();
+        history.push("/earnvalue/" + response.data.id);
+      })
+      .catch(() => {
+        notifyCreateError();
+      });
   };
 
   const handleDeleteItem = (uid: string, id: string) => {

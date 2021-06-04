@@ -108,19 +108,21 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
 
   const { uid, item_id } = props;
 
-  const handleSave = async () => {
-    try {
-      const updatedData = {
-        project_name: projectNameState,
-        data: JSON.stringify(dataState),
-        uid: uid,
-        id: item_id,
-      };
-      await api.put("api/admin/update", updatedData);
-      notifyUpdateSuccess();
-    } catch (error) {
-      notifyUpdateError();
-    }
+  const handleSave = () => {
+    const updatedData = {
+      project_name: projectNameState,
+      data: JSON.stringify(dataState),
+      uid: uid,
+      id: item_id,
+    };
+    api
+      .put("api/admin/update", updatedData)
+      .then((response) => {
+        notifyUpdateSuccess();
+      })
+      .catch(() => {
+        notifyUpdateError();
+      });
   };
 
   const handleDeleteRow = (i: number): void => {
@@ -132,21 +134,23 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
   const notifyDeleteSuccess = () => toast("Xoá thành công");
   const notifyDeleteError = () => toast("Xoá thất bại");
   const history = useHistory();
-  const handleDeleteItem = async () => {
+  const handleDeleteItem = () => {
     const newData = {
       uid: uid,
       id: item_id,
     };
-    try {
-      await api.post(
+    api
+      .post(
         `api/admin/delete/uid=${String(uid)}}/id=${String(item_id)}`,
         newData
-      );
-      notifyDeleteSuccess();
-      history.push("/dashboard");
-    } catch (error) {
-      notifyDeleteError();
-    }
+      )
+      .then((response) => {
+        notifyDeleteSuccess();
+        history.push("/dashboard");
+      })
+      .catch(() => {
+        notifyDeleteError();
+      });
   };
 
   const handleExportExcel = () => {
@@ -681,7 +685,7 @@ export const EarnedValueScreen = (props: EarnedValueScreenProps) => {
       <PercentCost
         BAC={costState && costState[1] ? costState[1].pop() : 0}
         data={dataState}
-        bcws={costState[1]}
+        bcws={costLTCDState}
         acwp={costState[3]}
         setDataState={setDataState}
       />
